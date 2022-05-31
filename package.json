@@ -1,0 +1,39 @@
+{
+  "name": "p14-ui-kit",
+  "version": "0.0.1",
+  "description": "A react component library",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "source": "src/index.js",
+  "repository": "https://github.com/Lukylix/p14-ui-kit",
+  "author": "Lukylix",
+  "license": "MIT",
+  "scripts": {
+    "start": "rollup -c -w",
+    "build:prod": "cross-env NODE_ENV=production rollup -c",
+    "build:dev": "cross-env NODE_ENV=development rollup -c"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "@babel/preset-react": "^7.17.12",
+    "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "cross-env": "^7.0.3",
+    "postcss": "^8.4.14",
+    "prettier": "^2.6.2",
+    "prop-types": "^15.8.1",
+    "react": "^18.1.0",
+    "rollup": "^2.75.3",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-uglify": "^6.0.4"
+  },
+  "peerDependencies": {
+    "react": ">= 16.x.x"
+  },
+  "files": [
+    "dist"
+  ]
+}
