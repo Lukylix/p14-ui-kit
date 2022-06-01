@@ -23,12 +23,14 @@
   top: calc(100% + 0.5rem);
 }
 
-.dayLabels, .dayNumbers {
+.dayLabels,
+.dayNumbers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
-.dayNumbers > div, .dayLabels > div {
+.dayNumbers > div,
+.dayLabels > div {
   text-align: center;
   font-size: 0.8rem;
   padding: 0.5rem;
@@ -49,7 +51,6 @@
 }
 
 .selectedDay {
-  background-color: #216BA5;
+  background-color: #216ba5;
   color: #fff;
-  
 }
