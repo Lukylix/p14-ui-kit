@@ -78,10 +78,6 @@ export default function Datepicker({
   const inputRef = useRef(null);
   useOutsideClick([datepickerBodyRef, inputRef], () => setIsVisible(false));
 
-  useEffect(() => {
-    console.log(customInput);
-  }, [customInput]);
-
   const viewNextMonth = () => {
     setViewDate((viewDate) => {
       const newViewDate = {
