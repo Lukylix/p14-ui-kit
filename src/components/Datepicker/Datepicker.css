@@ -1,0 +1,55 @@
+.datepicker {
+  position: relative;
+}
+
+.header {
+  font-size: 1rem;
+  position: relative;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header > div {
+  cursor: pointer;
+  width: 1rem;
+  text-align: center;
+}
+
+.body {
+  width: min-content;
+  border: 1px solid #ccc;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+}
+
+.dayLabels, .dayNumbers {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.dayNumbers > div, .dayLabels > div {
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+}
+
+.dayLabels > div {
+  font-weight: bold;
+}
+
+.dayNumbers > div {
+  cursor: pointer;
+  border-radius: 25%;
+}
+
+.dayNumbers > div:hover {
+  cursor: pointer;
+  background-color: #ccc;
+}
+
+.selectedDay {
+  background-color: #216BA5;
+  color: #fff;
+  
+}

@@ -4,6 +4,7 @@ import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
 import { uglify } from "rollup-plugin-uglify";
 import postcss from "rollup-plugin-postcss";
+import svgr from "@svgr/rollup";
 
 const packageJson = require("./package.json");
 
@@ -34,6 +35,7 @@ export default [
         ENV: JSON.stringify(process.env.NODE_ENV || "development"),
         preventAssignment: true,
       }),
+      svgr(),
       postcss({
         modules: true,
       }),
