@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import PropTypes from "prop-types";
 
@@ -8,40 +8,55 @@ import styles from "./Select.css";
 
 export default function Select({
   options = [],
-  onChange = () => {},
+  onChange,
   value = "",
   styles: customStyles = {},
   name = "select",
   placeHolder = "Select...",
+  isSearchable = false,
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const label = useMemo(() => options.find((option) => option.value === value)?.label || placeHolder, [options, value]);
+  const [inputLabel, setInputLabel] = useState(value);
+  const fileredOptions = useMemo(() => {
+    if (!isSearchable) return options;
+    return options.filter((option) => option.label.toLowerCase().includes(inputLabel.toLowerCase()));
+  }, [options, inputLabel, isSearchable]);
+
+  useEffect(() => {
+    const inputValue = options.find((option) => option.label === inputLabel)?.value;
+    const valueLabel = options.find((option) => option.value === value)?.label;
+    if (value !== inputValue) setInputLabel(valueLabel);
+  }, [value]);
+
   const inputRef = useRef();
   const optionsRef = useRef();
   useOutsideClick([inputRef, optionsRef], () => setIsVisible(false));
 
   return (
-    <div className={`${styles.select} ${isVisible ? styles.active : ""}`}>
+    <div className={`${styles.select} ${isVisible ? styles.active : ""}`} styles={customStyles.container}>
       <input
         ref={inputRef}
         name={name}
         onClick={() => setIsVisible(true)}
         className={styles.input}
-        value={label}
-        readOnly
+        value={inputLabel}
+        placeholder={placeHolder}
+        readOnly={!isSearchable}
         style={customStyles?.input}
+        onChange={(e) => setInputLabel(e.target.value)}
       />
       <ChevronDown height="1em" />
       {isVisible && (
         <div ref={optionsRef} className={styles.selectOptions} style={customStyles.options}>
-          {options.map((option, index) => (
+          {fileredOptions.map((option, index) => (
             <div
               key={index}
               className={styles.selectOption}
               style={customStyles.option}
               onClick={() => {
                 setIsVisible(false);
-                onChange(option?.value);
+                onChange?.(option?.value);
+                setInputLabel(option?.label);
               }}
             >
               {option?.label}
@@ -61,5 +76,6 @@ Select.propTypes = {
     input: PropTypes.object,
     options: PropTypes.object,
     option: PropTypes.object,
+    container: PropTypes.object,
   }),
 };

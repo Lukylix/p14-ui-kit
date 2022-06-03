@@ -23,6 +23,7 @@
   font-size: 1.2rem;
   outline: none;
   background-color: transparent;
+  cursor: pointer;
 }
 
 .selectOptions {

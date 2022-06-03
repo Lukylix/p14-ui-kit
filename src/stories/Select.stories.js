@@ -50,3 +50,9 @@ export const Default = Template.bind({});
 Default.args = {
   options,
 };
+
+export const Searchable = Template.bind({});
+Searchable.args = {
+  options,
+  isSearchable: true,
+};
