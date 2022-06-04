@@ -47,7 +47,8 @@
   cursor: pointer;
 }
 
-.selectOption:hover {
+.selectOption.hover {
   background-color: #1ea7fd;
   color: white;
 }
+
