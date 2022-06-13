@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 const getLastPaths = (item, path = [], paths = []) => {
   let isLastLayer = true;
@@ -57,7 +57,7 @@ const alignHeaderGroupsTree = (columns, paths) => {
 
 const getValueFromPath = (item, path) => {
   let value = item;
-  path.forEach((key) => (value = value[key]));
+  path.forEach((key) => (value = value?.[key]));
   return value;
 };
 
@@ -131,9 +131,54 @@ const getRows = (data, headerGroup) => {
   return rows;
 };
 
-export default function useTable({ columns, data }) {
+const getDataPaginate = (currentPage, pageSize,, usePagination, data) => {
+  if (!usePagination) return data;
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  return data.slice(start, end);
+};
+
+export default function useTable({
+  columns,
+  data,
+  usePagination = false,
+  initalState: { page: { number = 1, size = 10 } = {} } = {},
+}) {
   const headerGroups = useMemo(() => getHeaderGroups(columns), [columns]);
-  const rows = useMemo(() => getRows(data, headerGroups), [data, headerGroups]);
-  console.log("rows", rows);
-  return { headerGroups, rows };
+
+  const [currentPage, setCurrentPage] = useState(number);
+  const [pageSize, setPageSize] = useState(size);
+
+  // Prevent wrong page values
+  useEffect(() => {
+    goToPage(currentPage);
+  }, [pageSize]);
+
+  const dataPaginated = useMemo(() => getDataPaginate(currentPage, pageSize, usePagination, data), [currentPage, pageSize, data]);
+  const pageCount = useMemo(() => Math.ceil(data.length / pageSize), [data, pageSize]);
+  const canPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
+  const canNextPage = useMemo(() => currentPage < pageCount, [currentPage, pageCount]);
+
+  const previousPage = () => setCurrentPage((currentPage) => (canPreviousPage ? currentPage - 1 : 1));
+  const nextPage = () => setCurrentPage((currentPage) => (canNextPage ? currentPage + 1 : pageCount));
+  const goToPage = (page) => {
+    if (page < 1) return setCurrentPage(1);
+    if (page > pageCount) return setCurrentPage(pageCount);
+    setCurrentPage(page);
+  };
+
+  const rows = useMemo(() => getRows(dataPaginated, headerGroups), [dataPaginated, headerGroups]);
+  return {
+    headerGroups,
+    rows,
+    page: currentPage,
+    pageSize,
+    pageCount,
+    canPreviousPage,
+    canNextPage,
+    goToPage,
+    previousPage,
+    nextPage,
+    setPageSize,
+  };
 }
