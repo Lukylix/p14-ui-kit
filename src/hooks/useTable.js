@@ -131,7 +131,7 @@ const getRows = (data, headerGroup) => {
   return rows;
 };
 
-const getDataPaginate = (currentPage, pageSize,, usePagination, data) => {
+const getDataPaginate = (currentPage, pageSize, usePagination, data) => {
   if (!usePagination) return data;
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
@@ -154,7 +154,10 @@ export default function useTable({
     goToPage(currentPage);
   }, [pageSize]);
 
-  const dataPaginated = useMemo(() => getDataPaginate(currentPage, pageSize, usePagination, data), [currentPage, pageSize, data]);
+  const dataPaginated = useMemo(
+    () => getDataPaginate(currentPage, pageSize, usePagination, data),
+    [currentPage, pageSize, data]
+  );
   const pageCount = useMemo(() => Math.ceil(data.length / pageSize), [data, pageSize]);
   const canPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
   const canNextPage = useMemo(() => currentPage < pageCount, [currentPage, pageCount]);
