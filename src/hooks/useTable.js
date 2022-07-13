@@ -138,16 +138,87 @@ const getDataPaginate = (currentPage, pageSize, usePagination, data) => {
   return data.slice(start, end);
 };
 
+const sortNumber = (a, b) => a - b;
+const sortString = (a, b) => a.localeCompare(b);
+// const sortDate = (a, b) => new Date(a) - new Date(b);
+
+const getSortTypeFunction = (value) => {
+  if (isNaN(parseFloat(value))) return sortString;
+  return sortNumber;
+};
+
+const getDataSorted = (data, sortBy, useSortBy, columns) => {
+  if (!useSortBy) return data;
+  const sortedData = [...data];
+  sortBy.reverse().forEach((sort) => {
+    const { accessor, desc } = sort;
+    const customSortFunction = columns.find((column) => column.accessor === accessor)?.sortFn;
+    sortedData.sort((a, b) => {
+      const valueA = getValueFromPath(a, accessor.split("."));
+      const valueB = getValueFromPath(b, accessor.split("."));
+      if (customSortFunction) return customSortFunction(valueA, valueB) * (desc ? -1 : 1);
+      const sortTypeFunction = getSortTypeFunction(valueA);
+      return sortTypeFunction(valueA, valueB) * (desc ? -1 : 1);
+    });
+  });
+  return sortedData;
+};
+
+const getSortByToggleProps = (isSorted, isSortedDesc, accessor, setSortBy) => () => ({
+  onClick: () =>
+    isSorted
+      ? isSortedDesc
+        ? setSortBy([])
+        : setSortBy([{ accessor, desc: true }])
+      : setSortBy([{ accessor, desc: false }]),
+});
+
+const getHeaderGroupsWithSortedBool = (headerGroups, sortBy, setSortByState, useSortBy) => {
+  const headerGroupWithSorted = [...headerGroups];
+  headerGroupWithSorted.forEach((headerGroup) => {
+    headerGroup.headers.forEach((header) => {
+      if (useSortBy) {
+        header.isSorted = sortBy.some((sort) => sort.accessor === header.accessor);
+        header.isSortedDesc = sortBy.some((sort) => sort.accessor === header.accessor && sort.desc);
+        header.getSortByToggleProps = getSortByToggleProps(
+          header.isSorted,
+          header.isSortedDesc,
+          header.accessor,
+          setSortByState
+        );
+      } else {
+        header.isSorted = false;
+        header.isSortedDesc = false;
+        header.getSortByToggleProps = () => {};
+      }
+    });
+  });
+  return headerGroupWithSorted;
+};
+
 export default function useTable({
   columns,
   data,
   usePagination = false,
-  initalState: { page: { number = 1, size = 10 } = {} } = {},
+  useSortBy = false,
+  initalState: { page: { number = 1, size = 10 } = {}, sortBy = [] } = {},
 }) {
   const headerGroups = useMemo(() => getHeaderGroups(columns), [columns]);
 
   const [currentPage, setCurrentPage] = useState(number);
   const [pageSize, setPageSize] = useState(size);
+
+  const [sortByState, setSortByState] = useState(sortBy);
+
+  const dataSorted = useMemo(
+    () => getDataSorted(data, sortByState, useSortBy, columns),
+    [data, sortByState, useSortBy, columns]
+  );
+
+  const headerGroupWithSortedProps = useMemo(
+    () => getHeaderGroupsWithSortedBool(headerGroups, sortByState, setSortByState, useSortBy),
+    [headerGroups, sortByState, setSortByState, useSortBy]
+  );
 
   // Prevent wrong page values
   useEffect(() => {
@@ -155,10 +226,10 @@ export default function useTable({
   }, [pageSize]);
 
   const dataPaginated = useMemo(
-    () => getDataPaginate(currentPage, pageSize, usePagination, data),
-    [currentPage, pageSize, data]
+    () => getDataPaginate(currentPage, pageSize, usePagination, dataSorted),
+    [currentPage, pageSize, dataSorted]
   );
-  const pageCount = useMemo(() => Math.ceil(data.length / pageSize), [data, pageSize]);
+  const pageCount = useMemo(() => Math.ceil(dataSorted.length / pageSize), [dataSorted, pageSize]);
   const canPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
   const canNextPage = useMemo(() => currentPage < pageCount, [currentPage, pageCount]);
 
@@ -170,10 +241,14 @@ export default function useTable({
     setCurrentPage(page);
   };
 
-  const rows = useMemo(() => getRows(dataPaginated, headerGroups), [dataPaginated, headerGroups]);
+  const rows = useMemo(
+    () => getRows(dataPaginated, headerGroupWithSortedProps),
+    [dataPaginated, headerGroupWithSortedProps]
+  );
   return {
-    headerGroups,
+    headerGroups: headerGroupWithSortedProps,
     rows,
+    /*Pagination*/
     page: currentPage,
     pageSize,
     pageCount,
@@ -183,5 +258,7 @@ export default function useTable({
     previousPage,
     nextPage,
     setPageSize,
+    /*Sort*/
+    setSortBy: setSortByState,
   };
 }

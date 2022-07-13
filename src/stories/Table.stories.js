@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React from "react";
 
 import { useTable } from "../../dist/esm/index.js";
 import shows from "./data/shows.json";
@@ -11,15 +11,18 @@ export default {
 };
 
 // More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Template = ({ columns }) => {
-  const { headerGroups, rows } = useTable({ columns, data: shows });
+const Template = ({ columns, useSortBy = false, sortBy = [] }) => {
+  const { headerGroups, rows } = useTable({ columns, data: shows, useSortBy, initalState: { sortBy } });
+  console.log(headerGroups);
   return (
     <table>
       <thead>
         {headerGroups.map((headerGroup) => (
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps()}>{column.header}</th>
+              <th {...column.getHeaderProps()} {...column?.getSortByToggleProps()}>
+                {column.header} <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
+              </th>
             ))}
           </tr>
         ))}
@@ -32,7 +35,6 @@ const Template = ({ columns }) => {
             })}
           </tr>
         ))}
-        ;
       </tbody>
     </table>
   );
@@ -51,7 +53,8 @@ const PaginationTemplate = ({ columns }) => {
     previousPage,
     nextPage,
     setPageSize,
-  } = useTable({ columns, data: shows });
+  } = useTable({ columns, data: shows, usePagination: true });
+
   return (
     <>
       <table>
@@ -72,7 +75,6 @@ const PaginationTemplate = ({ columns }) => {
               })}
             </tr>
           ))}
-          ;
         </tbody>
       </table>
       <div className="pagination">
@@ -175,62 +177,47 @@ Default.args = {
   ],
 };
 
+const OneLayerHeadersColumns = [
+  {
+    Header: "Name",
+    accessor: "show.name",
+  },
+  {
+    Header: "Type",
+    accessor: "show.type",
+  },
+  {
+    Header: "Language",
+    accessor: "show.language",
+  },
+  {
+    Header: "Genre(s)",
+    accessor: "show.genres",
+    sortFn: (a, b) => a.length - b.length,
+  },
+  {
+    Header: "Runtime",
+    accessor: "show.runtime",
+  },
+  {
+    Header: "Status",
+    accessor: "show.status",
+  },
+];
+
 export const OneLayerHeader = Template.bind({});
 OneLayerHeader.args = {
-  columns: [
-    {
-      Header: "Name",
-      accessor: "show.name",
-    },
-    {
-      Header: "Type",
-      accessor: "show.type",
-    },
-    {
-      Header: "Language",
-      accessor: "show.language",
-    },
-    {
-      Header: "Genre(s)",
-      accessor: "show.genres",
-    },
-    {
-      Header: "Runtime",
-      accessor: "show.runtime",
-    },
-    {
-      Header: "Status",
-      accessor: "show.status",
-    },
-  ],
+  columns: OneLayerHeadersColumns,
 };
 
 export const Pagination = PaginationTemplate.bind({});
 Pagination.args = {
-  columns: [
-    {
-      Header: "Name",
-      accessor: "show.name",
-    },
-    {
-      Header: "Type",
-      accessor: "show.type",
-    },
-    {
-      Header: "Language",
-      accessor: "show.language",
-    },
-    {
-      Header: "Genre(s)",
-      accessor: "show.genres",
-    },
-    {
-      Header: "Runtime",
-      accessor: "show.runtime",
-    },
-    {
-      Header: "Status",
-      accessor: "show.status",
-    },
-  ],
+  columns: OneLayerHeadersColumns,
+};
+
+export const Sorted = Template.bind({});
+Sorted.args = {
+  columns: OneLayerHeadersColumns,
+  useSortBy: true,
+  sortBy: [{ accessor: "show.genres", desc: false }],
 };
