@@ -57,7 +57,8 @@ export default function Datepicker({
     "November",
     "December",
   ],
-  inputClassName = "",
+  inputProps = {},
+  datepickerProps = {},
   selected = new Date(),
   onChange = () => {},
   customInput = null,
@@ -130,16 +131,22 @@ export default function Datepicker({
       ) : (
         <input
           type="text"
-          ref={inputRef}
-          value={displayDate()}
-          onClick={() => setIsVisible(true)}
-          className={styles.input || inputClassName}
+          className={styles.input}
           readOnly={true}
+          {...inputProps}
+          value={displayDate()}
+          ref={inputRef}
+          onClick={() => {
+            inputProps?.onClick?.();
+            setIsVisible(true);
+          }}
         />
       )}
       {isVisible && (
-        <div className={styles.body} ref={datepickerBodyRef}>
-          <div className={styles.header}>
+        <div {...datepickerProps} className={`${styles.body} ${datepickerProps?.className}`} ref={datepickerBodyRef}>
+          <div
+            className={`${styles.header} ${datepickerProps?.className ? `${datepickerProps?.className}__header` : ""}`}
+          >
             <div onClick={viewPreviousMonth}>
               <ChevronLeft height="1.5rem" />
             </div>
@@ -148,14 +155,32 @@ export default function Datepicker({
               <ChevronRight height="1.5rem" />
             </div>
           </div>
-          <div className={styles.dayLabels}>
+          <div
+            className={`${styles.dayLabels} ${
+              datepickerProps?.className ? `${datepickerProps?.className}__dayLabels` : ""
+            }`}
+          >
             {dayLabels.map((label, i) => (
               <div key={i}>{label}</div>
             ))}
           </div>
-          <div className={styles.dayNumbers}>
+          <div
+            className={`${styles.dayNumbers} ${
+              datepickerProps?.className ? `${datepickerProps?.className}__dayNumbers` : ""
+            }`}
+          >
             {daysTab.map((day, i) => (
-              <div onClick={() => selectDay(day)} className={isSelectedDay(day) ? styles.selectedDay : ""} key={i}>
+              <div
+                onClick={() => selectDay(day)}
+                className={
+                  isSelectedDay(day)
+                    ? `${styles.selectedDay} ${
+                        datepickerProps?.className ? `${datepickerProps?.className}__selectedDay` : ""
+                      }`
+                    : ""
+                }
+                key={i}
+              >
                 {day.number}
               </div>
             ))}
@@ -179,7 +204,8 @@ const arrayOfLength = (expectedLength) => (props, propName, componentName) => {
 Datepicker.propTypes = {
   dayLabels: arrayOfLength(7),
   monthLabels: arrayOfLength(12),
-  inputClassName: PropTypes.string,
+  inputProps: PropTypes.object,
+  datepickerProps: PropTypes.object,
   selected: PropTypes.instanceOf(Date),
   onChange: PropTypes.func,
 };
@@ -200,5 +226,6 @@ Datepicker.defaultProps = {
     "November",
     "December",
   ],
-  inputClassName: "",
+  inputProps: {},
+  datepickerProps: {},
 };
