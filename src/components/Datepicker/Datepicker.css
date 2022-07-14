@@ -10,10 +10,12 @@
   justify-content: space-between;
   align-items: center;
 }
-.header > div {
+
+.chevron {
+  display: flex;
+  justify-content: center;
   cursor: pointer;
   width: 1rem;
-  text-align: center;
 }
 
 .body {

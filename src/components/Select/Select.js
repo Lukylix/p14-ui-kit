@@ -10,6 +10,7 @@ export default function Select({
   options = [],
   onChange,
   value = "",
+  className = "",
   styles: customStyles = {},
   name = "select",
   placeHolder = "Select...",
@@ -20,12 +21,19 @@ export default function Select({
   const [hoverIndex, setHoverIndex] = useState(null);
   const inputRef = useRef();
   const optionsRef = useRef();
+  const selectedRef = useRef();
   useOutsideClick([inputRef, optionsRef], () => setIsVisible(false) && setHoverIndex(null));
 
   const fileredOptions = useMemo(() => {
     if (!isSearchable || !inputLabel) return options;
     return options.filter((option) => option.label.toLowerCase().includes(inputLabel.toLowerCase()));
   }, [options, inputLabel, isSearchable]);
+
+  // Scroll to selected value on open
+  useEffect(() => {
+    if (!isVisible) return;
+    selectedRef?.current?.scrollIntoView({ block: "center" });
+  }, [isVisible, selectedRef]);
 
   useEffect(() => {
     const inputValue = options.find((option) => option.label === inputLabel)?.value;
@@ -34,7 +42,6 @@ export default function Select({
   }, [value]);
 
   const handleKeyDown = (event) => {
-    console.log(hoverIndex);
     switch (event.code) {
       case "ArrowDown":
         if (hoverIndex === null) return setHoverIndex(0);
@@ -66,13 +73,18 @@ export default function Select({
   };
 
   return (
-    <div className={`${styles.select} ${isVisible ? styles.active : ""}`} styles={customStyles.container}>
+    <div
+      className={`${styles.select} ${className || ""} ${
+        isVisible ? `${className && `${className}--active`} ${styles.active}` : ""
+      }`}
+      style={customStyles?.container}
+    >
       <input
         ref={inputRef}
         name={name}
         onClick={() => setIsVisible(true)}
         onFocus={() => setIsVisible(true)}
-        className={styles.input}
+        className={`${styles.input} ${className && `${className}__input`}`}
         value={inputLabel}
         placeholder={placeHolder}
         readOnly={!isSearchable}
@@ -82,14 +94,26 @@ export default function Select({
       />
       <ChevronDown height="1em" />
       {isVisible && (
-        <div ref={optionsRef} className={styles.selectOptions} style={customStyles.options} onKeyDown={handleKeyDown}>
+        <div
+          ref={optionsRef}
+          className={`${styles.selectOptions} ${className && `${className}__selectOptions`}`}
+          style={customStyles?.options}
+          onKeyDown={handleKeyDown}
+        >
           {fileredOptions.map((option, index) => (
             <div
               key={index}
-              className={styles.selectOption + (index === hoverIndex ? ` ${styles.hover}` : "")}
-              style={customStyles.option}
+              className={`${styles.selectOption} ${className && `${className}__selectOption`} ${
+                index === hoverIndex && `${styles.hover} ${className && `${className}__selectOption--hover`}`
+              }`}
+              style={customStyles?.option}
+              ref={value === option.value ? selectedRef : null}
               onClick={() => {
-                setIsVisible(false);
+                // Prevent useClickOutside from triggering
+                setTimeout(() => {
+                  setIsVisible(false);
+                }, 0);
+
                 onChange?.(option?.value);
                 setInputLabel(option?.label);
                 setHoverIndex(null);
@@ -106,9 +130,15 @@ export default function Select({
 }
 
 Select.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, value: PropTypes.string })),
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    })
+  ),
   onChange: PropTypes.func,
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  className: PropTypes.string,
   styles: PropTypes.shape({
     input: PropTypes.object,
     options: PropTypes.object,

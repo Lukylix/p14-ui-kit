@@ -1,11 +1,20 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import useOutsideClick from "../../hooks/useOutsideClick";
 
+import { Select } from "../Select";
 import ChevronLeft from "../../assets/ChevronLeft.svg";
 import ChevronRight from "../../assets/ChevronRight.svg";
 
 import styles from "./Datepicker.css";
+
+const range = (start, end) => {
+  const array = [];
+  for (let i = start; i <= end; i++) {
+    array.push(i);
+  }
+  return array;
+};
 
 const getNumberOfDaysInMonth = (month, year) => {
   return new Date(year, month + 1, 0).getDate();
@@ -41,6 +50,22 @@ const generateDaysTab = (month, year) => {
   return days;
 };
 
+const stylesSelect = {
+  container: {
+    width: "calc(50% - 1rem)",
+    fontSize: "0.5rem",
+  },
+  input: {
+    width: "100%",
+    padding: "0.25rem",
+    fontSize: "0.8rem",
+  },
+  options: {
+    fontSize: "0.8rem",
+    height: "200px",
+  },
+};
+
 export default function Datepicker({
   dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
   monthLabels = [
@@ -57,6 +82,7 @@ export default function Datepicker({
     "November",
     "December",
   ],
+  years: selectYearsOptionsProp = range(1900, new Date().getFullYear() + 100),
   inputProps = {},
   datepickerProps = {},
   selected = new Date(),
@@ -74,9 +100,16 @@ export default function Datepicker({
     month: selectedDate.month,
     year: selectedDate.year,
   });
+
+  const selectMonthOptions = useMemo(() => monthLabels.map((label, index) => ({ label, value: index })), [monthLabels]);
+  const selectYearOptions = useMemo(
+    () => selectYearsOptionsProp.map((year) => ({ label: year, value: year })),
+    [selectYearsOptionsProp]
+  );
+
   const [daysTab, setDaysTab] = useState(generateDaysTab(selectedDate.month, selectedDate.year));
-  const datepickerBodyRef = useRef(null);
-  const inputRef = useRef(null);
+  const datepickerBodyRef = useRef();
+  const inputRef = useRef();
   useOutsideClick([datepickerBodyRef, inputRef], () => setIsVisible(false));
 
   const viewNextMonth = () => {
@@ -139,25 +172,69 @@ export default function Datepicker({
           onClick={() => {
             inputProps?.onClick?.();
             setIsVisible(true);
+            // Return view to selected date
+            setViewDate({ year: selectedDate.year, month: selectedDate.month });
+            setDaysTab(generateDaysTab(selectedDate.month, selectedDate.year));
           }}
         />
       )}
+
       {isVisible && (
-        <div {...datepickerProps} className={`${styles.body} ${datepickerProps?.className}`} ref={datepickerBodyRef}>
+        <div
+          {...datepickerProps}
+          className={`${styles.body} ${datepickerProps?.className || ""}`}
+          ref={datepickerBodyRef}
+        >
           <div
-            className={`${styles.header} ${datepickerProps?.className ? `${datepickerProps?.className}__header` : ""}`}
+            className={`${styles.header} ${
+              (datepickerProps?.className && `${datepickerProps?.className}__header`) || ""
+            }`}
           >
-            <div onClick={viewPreviousMonth}>
+            <div
+              className={`${styles.chevron} ${
+                (datepickerProps?.className && `${datepickerProps?.className}__chevron`) || ""
+              }`}
+              onClick={viewPreviousMonth}
+            >
               <ChevronLeft height="1.5rem" />
             </div>
-            <span>{`${monthLabels[viewDate.month]} ${viewDate.year}`}</span>
-            <div onClick={viewNextMonth}>
+            <Select
+              options={selectMonthOptions}
+              value={viewDate.month}
+              onChange={(value) =>
+                setViewDate((viewDate) => {
+                  const newViewDate = { ...viewDate, month: value };
+                  setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+                  return newViewDate;
+                })
+              }
+              styles={stylesSelect}
+            />
+            <Select
+              options={selectYearOptions}
+              value={viewDate.year}
+              onChange={(value) =>
+                setViewDate((viewDate) => {
+                  const newViewDate = { ...viewDate, year: value };
+                  setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+                  return newViewDate;
+                })
+              }
+              styles={{ ...stylesSelect, container: { ...stylesSelect.container, width: "calc(4 * 1rem)" } }}
+            />
+            {/* <span>{`${monthLabels[viewDate.month]} ${viewDate.year}`}</span> */}
+            <div
+              className={`${styles.chevron} ${
+                (datepickerProps?.className && `${datepickerProps?.className}__chevron`) || ""
+              }`}
+              onClick={viewNextMonth}
+            >
               <ChevronRight height="1.5rem" />
             </div>
           </div>
           <div
             className={`${styles.dayLabels} ${
-              datepickerProps?.className ? `${datepickerProps?.className}__dayLabels` : ""
+              (datepickerProps?.className && `${datepickerProps?.className}__dayLabels`) || ""
             }`}
           >
             {dayLabels.map((label, i) => (
@@ -166,7 +243,7 @@ export default function Datepicker({
           </div>
           <div
             className={`${styles.dayNumbers} ${
-              datepickerProps?.className ? `${datepickerProps?.className}__dayNumbers` : ""
+              (datepickerProps?.className && `${datepickerProps?.className}__dayNumbers`) || ""
             }`}
           >
             {daysTab.map((day, i) => (
@@ -175,7 +252,7 @@ export default function Datepicker({
                 className={
                   isSelectedDay(day)
                     ? `${styles.selectedDay} ${
-                        datepickerProps?.className ? `${datepickerProps?.className}__selectedDay` : ""
+                        (datepickerProps?.className && `${datepickerProps?.className}__selectedDay`) || ""
                       }`
                     : ""
                 }
@@ -204,6 +281,7 @@ const arrayOfLength = (expectedLength) => (props, propName, componentName) => {
 Datepicker.propTypes = {
   dayLabels: arrayOfLength(7),
   monthLabels: arrayOfLength(12),
+  years: PropTypes.arrayOf(PropTypes.number),
   inputProps: PropTypes.object,
   datepickerProps: PropTypes.object,
   selected: PropTypes.instanceOf(Date),
