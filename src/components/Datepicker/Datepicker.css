@@ -23,6 +23,7 @@
   border: 1px solid #ccc;
   position: absolute;
   top: calc(100% + 0.5rem);
+  background-color: white;
 }
 
 .dayLabels,
