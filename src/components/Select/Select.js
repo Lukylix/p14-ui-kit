@@ -13,6 +13,7 @@ export default function Select({
   className = "",
   styles: customStyles = {},
   name = "select",
+  id,
   placeHolder = "Select...",
   isSearchable = false,
 }) {
@@ -22,7 +23,10 @@ export default function Select({
   const inputRef = useRef();
   const optionsRef = useRef();
   const selectedRef = useRef();
-  useOutsideClick([inputRef, optionsRef], () => setIsVisible(false) && setHoverIndex(null));
+  useOutsideClick([inputRef, optionsRef], () => {
+    setIsVisible(false);
+    setHoverIndex(null);
+  });
 
   const fileredOptions = useMemo(() => {
     if (!isSearchable || !inputLabel) return options;
@@ -84,6 +88,7 @@ export default function Select({
       <input
         ref={inputRef}
         name={name}
+        id={id}
         onClick={() => setIsVisible(true)}
         onFocus={() => setIsVisible(true)}
         className={`${styles.input} ${className && `${className}__input`}`}
@@ -147,4 +152,8 @@ Select.propTypes = {
     option: PropTypes.object,
     container: PropTypes.object,
   }),
+  name: PropTypes.string,
+  id: PropTypes.string,
+  placeHolder: PropTypes.string,
+  isSearchable: PropTypes.bool,
 };
