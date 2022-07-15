@@ -24,6 +24,7 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   background-color: white;
+  z-index: 1;
 }
 
 .dayLabels,

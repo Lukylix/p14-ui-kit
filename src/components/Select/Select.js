@@ -38,7 +38,7 @@ export default function Select({
   useEffect(() => {
     const inputValue = options.find((option) => option.label === inputLabel)?.value;
     const valueLabel = options.find((option) => option.value === value)?.label;
-    if (value !== inputValue) setInputLabel(valueLabel);
+    if (inputValue !== undefined && value !== inputValue) setInputLabel(valueLabel);
   }, [value]);
 
   const handleKeyDown = (event) => {
@@ -58,6 +58,7 @@ export default function Select({
         onChange(fileredOptions[hoverIndex].value);
         setHoverIndex(null);
         setIsVisible(false);
+        event.stopPropagation();
         break;
       case "Tab":
         if (hoverIndex !== null) {
@@ -66,6 +67,7 @@ export default function Select({
           setHoverIndex(null);
         }
         setIsVisible(false);
+        event.stopPropagation();
         break;
       default:
         break;
