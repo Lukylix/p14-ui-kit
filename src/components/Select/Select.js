@@ -18,12 +18,13 @@ export default function Select({
   isSearchable = false,
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const [inputLabel, setInputLabel] = useState(value);
+  const [inputLabel, setInputLabel] = useState(options.find((option) => option.value === value)?.label || "");
   const [hoverIndex, setHoverIndex] = useState(null);
   const inputRef = useRef();
   const optionsRef = useRef();
   const selectedRef = useRef();
   useOutsideClick([inputRef, optionsRef], () => {
+    console.log(`Clicked outside ${name}`);
     setIsVisible(false);
     setHoverIndex(null);
   });
