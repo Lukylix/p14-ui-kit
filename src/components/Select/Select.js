@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import ChevronDown from "../../assets/ChevronDown.svg";
 
 import styles from "./Select.css";
+import { scrollCenterFromParent } from "../../utils/utils";
 
 export default function Select({
   options = [],
@@ -20,11 +21,10 @@ export default function Select({
   const [isVisible, setIsVisible] = useState(false);
   const [inputLabel, setInputLabel] = useState(options.find((option) => option.value === value)?.label || "");
   const [hoverIndex, setHoverIndex] = useState(null);
-  const inputRef = useRef();
+  const containerRef = useRef();
   const optionsRef = useRef();
   const selectedRef = useRef();
-  useOutsideClick([inputRef, optionsRef], () => {
-    console.log(`Clicked outside ${name}`);
+  useOutsideClick([containerRef], (event) => {
     setIsVisible(false);
     setHoverIndex(null);
   });
@@ -36,14 +36,19 @@ export default function Select({
 
   // Scroll to selected value on open
   useEffect(() => {
-    if (!isVisible) return;
-    selectedRef?.current?.scrollIntoView({ block: "center" });
+    (() => {
+      if (!isVisible) return;
+      scrollCenterFromParent(optionsRef, selectedRef);
+    })();
   }, [isVisible, selectedRef]);
 
   useEffect(() => {
-    const inputValue = options.find((option) => option.label === inputLabel)?.value;
-    const valueLabel = options.find((option) => option.value === value)?.label;
-    if (inputValue !== undefined && value !== inputValue) setInputLabel(valueLabel);
+    (() => {
+      const inputValue = options.find((option) => option.label === inputLabel)?.value;
+      const valueLabel = options.find((option) => option.value === value)?.label;
+      if (valueLabel === undefined) return;
+      if (value !== inputValue) setInputLabel(valueLabel);
+    })();
   }, [value]);
 
   const handleKeyDown = (event) => {
@@ -60,7 +65,7 @@ export default function Select({
         if (hoverIndex === null) setHoverIndex(0);
 
         setInputLabel(fileredOptions[hoverIndex].label);
-        onChange(fileredOptions[hoverIndex].value);
+        onChange?.(fileredOptions[hoverIndex].value);
         setHoverIndex(null);
         setIsVisible(false);
         event.stopPropagation();
@@ -68,7 +73,7 @@ export default function Select({
       case "Tab":
         if (hoverIndex !== null) {
           setInputLabel(fileredOptions[hoverIndex].label);
-          onChange(fileredOptions[hoverIndex].value);
+          onChange?.(fileredOptions[hoverIndex].value);
           setHoverIndex(null);
         }
         setIsVisible(false);
@@ -85,9 +90,9 @@ export default function Select({
         isVisible ? `${className && `${className}--active`} ${styles.active}` : ""
       }`}
       style={customStyles?.container}
+      ref={containerRef}
     >
       <input
-        ref={inputRef}
         name={name}
         id={id}
         onClick={() => setIsVisible(true)}
@@ -117,13 +122,9 @@ export default function Select({
               style={customStyles?.option}
               ref={value === option.value ? selectedRef : null}
               onClick={() => {
-                // Prevent useClickOutside from triggering
-                setTimeout(() => {
-                  setIsVisible(false);
-                }, 0);
-
-                onChange?.(option?.value);
+                setIsVisible(false);
                 setInputLabel(option?.label);
+                onChange?.(option?.value);
                 setHoverIndex(null);
               }}
               onMouseEnter={() => setHoverIndex(index)}

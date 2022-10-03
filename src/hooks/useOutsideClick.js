@@ -7,7 +7,7 @@ export default function useOutsideClick(refs, callback) {
       refs.forEach((ref) => {
         if (ref?.current?.contains(e.target)) isClickInside = true;
       });
-      if (!isClickInside) callback();
+      if (!isClickInside) callback(e);
     };
 
     document.addEventListener("click", handleClick);

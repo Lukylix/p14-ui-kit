@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Ref } from "react";
 
 /**
  * Gets the string type of the component or core html (JSX) element.
@@ -40,4 +40,19 @@ export function filterChildrenByType(children, types) {
     }
   });
   return [filteredChildren, nonMatchingChildren];
+}
+/**
+ * Scroll to center a children inside it's parent.
+ * @param {Ref} parent
+ * @param {Ref} children
+ */
+export function scrollCenterFromParent(parent, children) {
+  const isScrollable = parent?.current?.scrollHeight > parent?.current.clientHeight;
+  if (!isScrollable) return;
+  const parentBounding = parent?.current?.getBoundingClientRect();
+  const childrenBounding = children?.current?.getBoundingClientRect();
+  if (!parentBounding || !childrenBounding) return;
+  const { top: parentTop, height: parentHeight } = parentBounding;
+  const { top: childrenTop, height: childrenHeight } = childrenBounding;
+  parent.current.scrollTop = -(parentTop - childrenTop) - (parentHeight / 2 - childrenHeight / 2);
 }

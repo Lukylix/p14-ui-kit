@@ -38,10 +38,10 @@ const options = [
 
 // More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Template = (args) => {
-  const [value, seValue] = React.useState();
+  const [value, setValue] = React.useState();
   return (
     <div>
-      <Select {...args} value={value} onChange={(value) => seValue(value)} />
+      <Select {...args} value={value} onChange={(value) => setValue(value)} />
     </div>
   );
 };
