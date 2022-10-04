@@ -10,18 +10,19 @@
 .select > svg {
   position: absolute;
   top: 50%;
-  right: 0.5rem;
+  right: 0.7em;
+  font-size: 1em;
   transform: translateY(-50%);
   pointer-events: none;
 }
 
 .input {
-  padding: 0.5rem;
+  padding: 0.5em 1.7em 0.5em 0.5em;
   border: 1px solid #ccc;
   border-radius: 3px;
   box-sizing: border-box;
-  font-size: 1.2rem;
   outline: none;
+  font-size: 1em;
   background-color: transparent;
   cursor: pointer;
 }
@@ -37,7 +38,7 @@
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 3px;
-  font-size: 1.2rem;
+  font-size: 1em;
   z-index: 1;
   padding: 0;
 }

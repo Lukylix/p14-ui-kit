@@ -122,7 +122,11 @@ export default function Select({
               style={customStyles?.option}
               ref={value === option.value ? selectedRef : null}
               onClick={() => {
-                setIsVisible(false);
+                /* setTimeout necessary when using useClickOudide on parent component
+                  useOutsideClick can only look for child nodes inside the dom
+                  so we delay the deletion at the end of the call stack (0ms timeout)
+                */
+                setTimeout(() => setIsVisible(false), 0);
                 setInputLabel(option?.label);
                 onChange?.(option?.value);
                 setHoverIndex(null);

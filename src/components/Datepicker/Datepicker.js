@@ -52,16 +52,13 @@ const generateDaysTab = (month, year) => {
 
 const stylesSelect = {
   container: {
-    width: "calc(50% - 1rem)",
-    fontSize: "0.5rem",
+    fontSize: "0.70em",
+    width: "100%",
   },
   input: {
     width: "100%",
-    padding: "0.25rem",
-    fontSize: "0.8rem",
   },
   options: {
-    fontSize: "0.8rem",
     height: "200px",
   },
 };
@@ -135,7 +132,11 @@ export default function Datepicker({
   };
 
   const selectDay = (day) => {
-    setIsVisible(false);
+    /* setTimeout necessary when using useClickOudide on parent component
+      useOutsideClick can only look for child nodes inside the dom
+      so we delay the deletion at the end of the call stack (0ms timeout)
+    */
+    setTimeout(() => setIsVisible(false), 0);
     setSelectedDate({
       date: day.number,
       month: day.month,
@@ -196,7 +197,7 @@ export default function Datepicker({
               }`}
               onClick={viewPreviousMonth}
             >
-              <ChevronLeft height="1.5rem" />
+              <ChevronLeft height="1.5em" />
             </div>
             <Select
               options={selectMonthOptions}
@@ -220,7 +221,8 @@ export default function Datepicker({
                   return newViewDate;
                 })
               }
-              styles={{ ...stylesSelect, container: { ...stylesSelect.container, width: "calc(4 * 1rem)" } }}
+              /** Width = (4 number + 1 chevron)ch + padding right + padding left */
+              styles={{ ...stylesSelect, input: { ...stylesSelect.input, width: "calc(5ch + 0.5em  + 1.7em)" } }}
             />
             {/* <span>{`${monthLabels[viewDate.month]} ${viewDate.year}`}</span> */}
             <div
@@ -229,7 +231,7 @@ export default function Datepicker({
               }`}
               onClick={viewNextMonth}
             >
-              <ChevronRight height="1.5rem" />
+              <ChevronRight height="1.5em" />
             </div>
           </div>
           <div
