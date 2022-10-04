@@ -23,6 +23,7 @@ export default function Select({
   const [hoverIndex, setHoverIndex] = useState(null);
   const containerRef = useRef();
   const optionsRef = useRef();
+  const hoverRef = useRef();
   const selectedRef = useRef();
   useOutsideClick([containerRef], (event) => {
     setIsVisible(false);
@@ -34,11 +35,12 @@ export default function Select({
     return options.filter((option) => option.label.toLowerCase().includes(inputLabel.toLowerCase()));
   }, [options, inputLabel, isSearchable]);
 
-  // Scroll to selected value on open
   useEffect(() => {
     (() => {
       if (!isVisible) return;
-      scrollCenterFromParent(optionsRef, selectedRef);
+      // Scroll to selected value on open
+      scrollCenterFromParent(optionsRef?.current, selectedRef?.current || hoverRef?.current);
+      setHoverIndex(fileredOptions.findIndex((option) => option.label === inputLabel));
     })();
   }, [isVisible, selectedRef]);
 
@@ -56,26 +58,20 @@ export default function Select({
       case "ArrowDown":
         if (hoverIndex === null) return setHoverIndex(0);
         setHoverIndex((prevHoverIndex) => (prevHoverIndex + 1 > fileredOptions.length - 1 ? 0 : prevHoverIndex + 1));
+        // Wait for hoverRef update
+        setTimeout(() => scrollCenterFromParent(optionsRef?.current, hoverRef?.current, 200), 0);
         break;
       case "ArrowUp":
         if (hoverIndex === null) return setHoverIndex(fileredOptions.length - 1);
         setHoverIndex((prevHoverIndex) => (prevHoverIndex - 1 < 0 ? fileredOptions.length - 1 : prevHoverIndex - 1));
+        // Wait for hoverRef update
+        setTimeout(() => scrollCenterFromParent(optionsRef?.current, hoverRef?.current, 200), 0);
         break;
       case "Enter":
-        if (hoverIndex === null) setHoverIndex(0);
-
-        setInputLabel(fileredOptions[hoverIndex].label);
-        onChange?.(fileredOptions[hoverIndex].value);
-        setHoverIndex(null);
-        setIsVisible(false);
-        event.stopPropagation();
-        break;
       case "Tab":
-        if (hoverIndex !== null) {
-          setInputLabel(fileredOptions[hoverIndex].label);
-          onChange?.(fileredOptions[hoverIndex].value);
-          setHoverIndex(null);
-        }
+        setInputLabel(fileredOptions[hoverIndex < 0 ? 0 : hoverIndex].label);
+        onChange?.(fileredOptions[hoverIndex < 0 ? 0 : hoverIndex].value);
+        setHoverIndex(null);
         setIsVisible(false);
         event.stopPropagation();
         break;
@@ -95,14 +91,17 @@ export default function Select({
       <input
         name={name}
         id={id}
-        onClick={() => setIsVisible(true)}
-        onFocus={() => setIsVisible(true)}
+        onClick={() => setIsVisible((isVisible) => !isVisible)}
         className={`${styles.input} ${className && `${className}__input`}`}
         value={inputLabel}
         placeholder={placeHolder}
         readOnly={!isSearchable}
         style={customStyles?.input}
-        onChange={(e) => setInputLabel(e.target.value) && setHoverIndex(0)}
+        onChange={(e) => {
+          setInputLabel(e.target.value);
+          setHoverIndex(0);
+          setIsVisible(true);
+        }}
         onKeyDown={handleKeyDown}
       />
       <ChevronDown height="1em" />
@@ -120,7 +119,7 @@ export default function Select({
                 index === hoverIndex && `${styles.hover} ${className && `${className}__selectOption--hover`}`
               }`}
               style={customStyles?.option}
-              ref={value === option.value ? selectedRef : null}
+              ref={index === hoverIndex ? hoverRef : value === option.value ? selectedRef : null}
               onClick={() => {
                 /* setTimeout necessary when using useClickOudide on parent component
                   useOutsideClick can only look for child nodes inside the dom
@@ -129,7 +128,6 @@ export default function Select({
                 setTimeout(() => setIsVisible(false), 0);
                 setInputLabel(option?.label);
                 onChange?.(option?.value);
-                setHoverIndex(null);
               }}
               onMouseEnter={() => setHoverIndex(index)}
             >
