@@ -188,16 +188,10 @@ export default function Datepicker({
         viewPreviousMonth();
         break;
       case "ArrowUp":
-        setHoverDayTabIndex((hoverIndex) => {
-          if (hoverIndex - 7 >= 0) return hoverIndex - 7;
-          return hoverIndex;
-        });
+        if (hoverDayTabIndex - 7 >= 0) setHoverDayTabIndex(hoverDayTabIndex - 7);
         break;
       case "ArrowDown":
-        setHoverDayTabIndex((hoverIndex) => {
-          if (hoverIndex + 7 < daysTab.length) return hoverIndex + 7;
-          return hoverIndex;
-        });
+        if (hoverDayTabIndex + 7 < daysTab.length) setHoverDayTabIndex(hoverDayTabIndex + 7);
         break;
       case "Enter":
       case "Tab":
