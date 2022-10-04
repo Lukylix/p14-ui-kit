@@ -51,7 +51,7 @@
   border-radius: 25%;
 }
 
-.dayNumbers > div:hover {
+.hoverDay {
   cursor: pointer;
   background-color: #ccc;
 }

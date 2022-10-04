@@ -91,7 +91,8 @@ export default function Select({
       <input
         name={name}
         id={id}
-        onClick={() => setIsVisible((isVisible) => !isVisible)}
+        onClick={() => setIsVisible(true)}
+        onFocus={() => setIsVisible(true)}
         className={`${styles.input} ${className && `${className}__input`}`}
         value={inputLabel}
         placeholder={placeHolder}

@@ -105,6 +105,7 @@ export default function Datepicker({
   );
 
   const [daysTab, setDaysTab] = useState(generateDaysTab(selectedDate.month, selectedDate.year));
+
   const datepickerBodyRef = useRef();
   const inputRef = useRef();
   useOutsideClick([datepickerBodyRef, inputRef], () => setIsVisible(false));
@@ -115,7 +116,9 @@ export default function Datepicker({
         month: viewDate.month + 1 > 11 ? 0 : viewDate.month + 1,
         year: viewDate.month + 1 > 11 ? viewDate.year + 1 : viewDate.year,
       };
-      setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+      const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+      if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
+      setDaysTab(daysTab);
       return newViewDate;
     });
   };
@@ -126,7 +129,9 @@ export default function Datepicker({
         month: viewDate.month - 1 < 0 ? 11 : viewDate.month - 1,
         year: viewDate.month - 1 < 0 ? viewDate.year - 1 : viewDate.year,
       };
-      setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+      const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+      if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
+      setDaysTab(daysTab);
       return newViewDate;
     });
   };
@@ -158,6 +163,51 @@ export default function Datepicker({
     return `${addZero(selectedDate.date)}/${addZero(selectedDate.month + 1)}/${selectedDate.year}`;
   };
 
+  const handleKeyDownHeader = (event) => {
+    switch (event.code) {
+      case "ArrowRight":
+        viewNextMonth();
+        break;
+      case "ArrowLeft":
+        viewPreviousMonth();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const [hoverDayTabIndex, setHoverDayTabIndex] = useState(daysTab.findIndex((day) => isSelectedDay(day)));
+  const handleKeyDownBody = (event) => {
+    switch (event.code) {
+      case "ArrowRight":
+        if ((hoverDayTabIndex + 1) % 7 !== 0) return setHoverDayTabIndex(hoverDayTabIndex + 1);
+        viewNextMonth();
+        break;
+      case "ArrowLeft":
+        if (hoverDayTabIndex % 7 !== 0) return setHoverDayTabIndex(hoverDayTabIndex - 1);
+        viewPreviousMonth();
+        break;
+      case "ArrowUp":
+        setHoverDayTabIndex((hoverIndex) => {
+          if (hoverIndex - 7 >= 0) return hoverIndex - 7;
+          return hoverIndex;
+        });
+        break;
+      case "ArrowDown":
+        setHoverDayTabIndex((hoverIndex) => {
+          if (hoverIndex + 7 < daysTab.length) return hoverIndex + 7;
+          return hoverIndex;
+        });
+        break;
+      case "Enter":
+      case "Tab":
+        if (hoverDayTabIndex < daysTab.length && hoverDayTabIndex > 0) selectDay(daysTab[hoverDayTabIndex]);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className={styles.datepicker}>
       {customInput ? (
@@ -168,8 +218,15 @@ export default function Datepicker({
           className={styles.input}
           readOnly={true}
           {...inputProps}
-          value={displayDate()}
           ref={inputRef}
+          value={displayDate()}
+          onFocus={() => {
+            inputProps?.onFocus?.();
+            setIsVisible(true);
+            // Return view to selected date
+            setViewDate({ year: selectedDate.year, month: selectedDate.month });
+            setDaysTab(generateDaysTab(selectedDate.month, selectedDate.year));
+          }}
           onClick={() => {
             inputProps?.onClick?.();
             setIsVisible(true);
@@ -190,6 +247,8 @@ export default function Datepicker({
             className={`${styles.header} ${
               (datepickerProps?.className && `${datepickerProps?.className}__header`) || ""
             }`}
+            tabIndex={0}
+            onKeyDown={handleKeyDownHeader}
           >
             <div
               className={`${styles.chevron} ${
@@ -205,7 +264,10 @@ export default function Datepicker({
               onChange={(value) =>
                 setViewDate((viewDate) => {
                   const newViewDate = { ...viewDate, month: value };
-                  setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+                  const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+                  // setHoverDayTabIndex(daysTab.length - 1 - ((7 - ((hoverDayTabIndex + 1) % 7)) % 7));
+                  if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
+                  setDaysTab(daysTab);
                   return newViewDate;
                 })
               }
@@ -217,7 +279,10 @@ export default function Datepicker({
               onChange={(value) =>
                 setViewDate((viewDate) => {
                   const newViewDate = { ...viewDate, year: value };
-                  setDaysTab(generateDaysTab(newViewDate.month, newViewDate.year));
+                  const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+                  // setHoverDayTabIndex(daysTab.length - 1 - ((7 - ((hoverDayTabIndex + 1) % 7)) % 7));
+                  if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
+                  setDaysTab(daysTab);
                   return newViewDate;
                 })
               }
@@ -247,6 +312,8 @@ export default function Datepicker({
             className={`${styles.dayNumbers} ${
               (datepickerProps?.className && `${datepickerProps?.className}__dayNumbers`) || ""
             }`}
+            tabIndex={0}
+            onKeyDown={handleKeyDownBody}
           >
             {daysTab.map((day, i) => (
               <div
@@ -256,8 +323,13 @@ export default function Datepicker({
                     ? `${styles.selectedDay} ${
                         (datepickerProps?.className && `${datepickerProps?.className}__selectedDay`) || ""
                       }`
+                    : i === hoverDayTabIndex
+                    ? `${styles.hoverDay} ${
+                        (datepickerProps?.className && `${datepickerProps?.className}__hoverDay`) || ""
+                      }`
                     : ""
                 }
+                onMouseEnter={() => setHoverDayTabIndex(i)}
                 key={i}
               >
                 {day.number}
