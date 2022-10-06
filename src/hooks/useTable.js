@@ -220,18 +220,18 @@ export default function useTable({
     [headerGroups, sortByState, setSortByState, useSortBy]
   );
 
-  // Prevent wrong page values
-  useEffect(() => {
-    goToPage(currentPage);
-  }, [pageSize]);
-
   const dataPaginated = useMemo(
     () => getDataPaginate(currentPage, pageSize, usePagination, dataSorted),
     [currentPage, pageSize, dataSorted]
   );
-  const pageCount = useMemo(() => Math.min(Math.ceil(dataSorted.length / pageSize), 1), [dataSorted, pageSize]);
+  const pageCount = useMemo(() => Math.max(Math.ceil(dataSorted.length / pageSize), 1), [dataSorted, pageSize]);
   const canPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
   const canNextPage = useMemo(() => currentPage < pageCount, [currentPage, pageCount]);
+
+  // Prevent wrong page values
+  useEffect(() => {
+    goToPage(currentPage);
+  }, [pageSize, pageCount]);
 
   const previousPage = () => setCurrentPage((currentPage) => (canPreviousPage ? currentPage - 1 : 1));
   const nextPage = () => setCurrentPage((currentPage) => (canNextPage ? currentPage + 1 : pageCount));
