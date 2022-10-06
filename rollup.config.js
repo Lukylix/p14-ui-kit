@@ -2,7 +2,6 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
-import { uglify } from "rollup-plugin-uglify";
 import postcss from "rollup-plugin-postcss";
 import svgr from "@svgr/rollup";
 
@@ -39,7 +38,6 @@ export default [
       postcss({
         modules: true,
       }),
-      process.env.NODE_ENV === "production" && uglify(),
     ],
   },
 ];

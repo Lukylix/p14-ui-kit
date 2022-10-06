@@ -229,7 +229,7 @@ export default function useTable({
     () => getDataPaginate(currentPage, pageSize, usePagination, dataSorted),
     [currentPage, pageSize, dataSorted]
   );
-  const pageCount = useMemo(() => Math.ceil(dataSorted.length / pageSize), [dataSorted, pageSize]);
+  const pageCount = useMemo(() => Math.min(Math.ceil(dataSorted.length / pageSize), 1), [dataSorted, pageSize]);
   const canPreviousPage = useMemo(() => currentPage > 1, [currentPage]);
   const canNextPage = useMemo(() => currentPage < pageCount, [currentPage, pageCount]);
 
