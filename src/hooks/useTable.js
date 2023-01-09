@@ -79,7 +79,7 @@ const getHeaderGroup = (columns, paths, headerGroups) => {
     return acc < arrayDepth ? arrayDepth : acc;
   }, 0);
   paths.forEach((path, index) => {
-    const { Header, accessor, columns: subcolumns } = getValueFromPath(columns, path);
+    const { Header, accessor, getFn, columns: subcolumns } = getValueFromPath(columns, path);
     const colSpan = getLastPaths(subcolumns).length;
     headerGroups[headerGroupIndex] = {
       getHeaderGroupProps: getHeaderGroupProps(depth, headerGroupIndex),
@@ -89,6 +89,7 @@ const getHeaderGroup = (columns, paths, headerGroups) => {
           header: Header,
           depth,
           accessor,
+          getFn, // Needed for getRows
           columns: subcolumns,
           getHeaderProps: getHeaderProps(Header, depth, colSpan),
         },
@@ -113,13 +114,15 @@ const getRowProps = (index) => () => ({ role: "row", key: `row_${index}` });
 const getCellProps = (index, accessor) => () => ({ role: "cell", key: `cell_${index}_${accessor}` });
 
 const getRows = (data, headerGroup) => {
+  console.log({ headerGroup });
   let rows = [];
   const columns = headerGroup[headerGroup.length - 1].headers;
   data.forEach((item, index) => {
     const row = { id: `${index}`, index, cells: [], getRowProps: getRowProps(index) };
     columns.forEach((column) => {
-      const { accessor } = column;
+      const { accessor, getFn } = column;
       let value = getValueFromPath(item, accessor.split("."));
+      if (typeof getFn === "function") value = getFn(value);
       if (Array.isArray(value)) value = value.join(", ");
       row.cells.push({
         value,
@@ -140,7 +143,6 @@ const getDataPaginate = (currentPage, pageSize, usePagination, data) => {
 
 const sortNumber = (a, b) => a - b;
 const sortString = (a, b) => a.localeCompare(b);
-// const sortDate = (a, b) => new Date(a) - new Date(b);
 
 const getSortTypeFunction = (value) => {
   if (isNaN(parseFloat(value))) return sortString;
