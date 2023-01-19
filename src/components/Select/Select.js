@@ -35,15 +35,16 @@ export default function Select({
     return options.filter((option) => option.label.toLowerCase().includes(inputLabel.toLowerCase()));
   }, [options, inputLabel, isSearchable]);
 
+  // Scroll to selected value on open && set hover index
   useEffect(() => {
     (() => {
       if (!isVisible) return;
-      // Scroll to selected value on open
       scrollCenterFromParent(optionsRef?.current, selectedRef?.current || hoverRef?.current);
       setHoverIndex(fileredOptions.findIndex((option) => option.label === inputLabel));
     })();
   }, [isVisible, selectedRef]);
 
+  //Sync value and inputlabel state when input is controlled
   useEffect(() => {
     (() => {
       const inputValue = options.find((option) => option.label === inputLabel)?.value;
@@ -122,7 +123,7 @@ export default function Select({
               style={customStyles?.option}
               ref={index === hoverIndex ? hoverRef : value === option.value ? selectedRef : null}
               onClick={() => {
-                /* setTimeout necessary when using useClickOudide on parent component
+                /* setTimeout necessary when using useClickOutside on parent component.
                   useOutsideClick can only look for child nodes inside the dom
                   so we delay the deletion at the end of the call stack (0ms timeout)
                 */

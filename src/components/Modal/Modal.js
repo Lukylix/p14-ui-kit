@@ -5,8 +5,6 @@ import { filterChildrenByType } from "../../utils";
 
 import styles from "./Modal.css";
 
-// const ModalContext = createContext();
-
 export function Modal({
   isVisible,
   setIsVisible,

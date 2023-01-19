@@ -1,4 +1,4 @@
-import React, { Ref } from "react";
+import React from "react";
 
 /**
  * Gets the string type of the component or core html (JSX) element.

@@ -1,5 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
-
+/**
+ * Recursive function returning an array with index, key syntax
+ * representing the full paths to smallest headers.
+ * @param {string | object | any[]} item
+ * @param {string[]} paths
+ * @param {string[]} path
+ * @returns {string[]} full paths
+ */
 const getLastPaths = (item, path = [], paths = []) => {
   let isLastLayer = true;
   if (typeof item === "object") {
@@ -13,7 +20,11 @@ const getLastPaths = (item, path = [], paths = []) => {
   if (isLastLayer) paths.push(path);
   return paths;
 };
-
+/**
+ * Return an array with index, key syntax representing the full paths to next headers
+ * @param {string[]} paths
+ * @returns  {string[]} full paths to next layer
+ */
 const pathsToNextArray = (paths) => {
   paths.forEach((path, index) => {
     let indexToRemove;
@@ -36,15 +47,19 @@ const pathsToNextArray = (paths) => {
   return uniquePaths;
 };
 
+/**
+ * Modify columns (future header group) and the full paths to smallest header
+ * so i take into account the final header tree (add empty headers)
+ */
 const alignHeaderGroupsTree = (columns, paths) => {
   const maxPathLength = paths.reduce((acc, path) => (acc < path.length ? path.length : acc), 0);
-  const shortLenghtIndexes = paths.reduce(
+  const shortLengthIndexes = paths.reduce(
     (acc, path, index) => (path.length === maxPathLength ? acc : [...acc, index]),
     []
   );
-  if (shortLenghtIndexes.length === 0) return;
+  if (shortLengthIndexes.length === 0) return;
   let topLevelIndex;
-  shortLenghtIndexes.forEach((index) => {
+  shortLengthIndexes.forEach((index) => {
     const path = paths[index];
     if (topLevelIndex !== path[0]) {
       topLevelIndex = path[0];
@@ -72,14 +87,17 @@ const getHeaderGroupProps = (depth, index) => () => ({
   role: "row",
 });
 
+/**
+ * Add one header Group (header layer) with its properties.
+ */
 const getHeaderGroup = (columns, paths, headerGroups) => {
   const headerGroupIndex = headerGroups.length;
   const depth = paths.reduce((acc, path) => {
     const arrayDepth = path.reduce((acc, column) => (!isNaN(parseInt(column)) ? acc + 1 : acc), 0);
     return acc < arrayDepth ? arrayDepth : acc;
   }, 0);
-  paths.forEach((path, index) => {
-    const { Header, accessor, getFn, columns: subcolumns } = getValueFromPath(columns, path);
+  paths.forEach((path) => {
+    const { Header, accessor, getFn, sortFn, columns: subcolumns } = getValueFromPath(columns, path);
     const colSpan = getLastPaths(subcolumns).length;
     headerGroups[headerGroupIndex] = {
       getHeaderGroupProps: getHeaderGroupProps(depth, headerGroupIndex),
@@ -90,6 +108,7 @@ const getHeaderGroup = (columns, paths, headerGroups) => {
           depth,
           accessor,
           getFn, // Needed for getRows
+          sortFn, // Needed for getDataSorted
           columns: subcolumns,
           getHeaderProps: getHeaderProps(Header, depth, colSpan),
         },
@@ -98,7 +117,9 @@ const getHeaderGroup = (columns, paths, headerGroups) => {
   });
   return headerGroups;
 };
-
+/**
+ * Return Complete Headers Groups ready to be rendered (without sort properties).
+ */
 const getHeaderGroups = (columns) => {
   let paths = getLastPaths(columns);
   alignHeaderGroupsTree(columns, paths);
@@ -112,9 +133,10 @@ const getHeaderGroups = (columns) => {
 
 const getRowProps = (index) => () => ({ role: "row", key: `row_${index}` });
 const getCellProps = (index, accessor) => () => ({ role: "cell", key: `cell_${index}_${accessor}` });
-
+/**
+ * Returns all rows with properties ready to be rendered.
+ */
 const getRows = (data, headerGroup) => {
-  console.log({ headerGroup });
   let rows = [];
   const columns = headerGroup[headerGroup.length - 1].headers;
   data.forEach((item, index) => {
@@ -133,7 +155,9 @@ const getRows = (data, headerGroup) => {
   });
   return rows;
 };
-
+/**
+ * Return only the data needed for the current page.
+ */
 const getDataPaginate = (currentPage, pageSize, usePagination, data) => {
   if (!usePagination) return data;
   const start = (currentPage - 1) * pageSize;
@@ -148,13 +172,17 @@ const getSortTypeFunction = (value) => {
   if (isNaN(parseFloat(value))) return sortString;
   return sortNumber;
 };
-
-const getDataSorted = (data, sortBy, useSortBy, columns) => {
+/**
+ * Sort the data using provided accesors and optional sort functions.
+ */
+const getDataSorted = (data, sortBy, useSortBy, headerGroups) => {
   if (!useSortBy) return data;
   const sortedData = [...data];
   sortBy.reverse().forEach((sort) => {
     const { accessor, desc } = sort;
-    const customSortFunction = columns.find((column) => column.accessor === accessor)?.sortFn;
+    const customSortFunction = headerGroups[headerGroups.length - 1].headers.find(
+      (column) => column.accessor === accessor
+    )?.sortFn;
     sortedData.sort((a, b) => {
       const valueA = getValueFromPath(a, accessor.split("."));
       const valueB = getValueFromPath(b, accessor.split("."));
@@ -165,7 +193,9 @@ const getDataSorted = (data, sortBy, useSortBy, columns) => {
   });
   return sortedData;
 };
-
+/**
+ * Create the onClick property sorting the current column.
+ */
 const getSortByToggleProps = (isSorted, isSortedDesc, accessor, setSortBy) => () => ({
   onClick: () =>
     isSorted
@@ -174,27 +204,31 @@ const getSortByToggleProps = (isSorted, isSortedDesc, accessor, setSortBy) => ()
         : setSortBy([{ accessor, desc: true }])
       : setSortBy([{ accessor, desc: false }]),
 });
-
+/**
+ * Add to header groups the sorted properties.
+ */
 const getHeaderGroupsWithSortedBool = (headerGroups, sortBy, setSortByState, useSortBy) => {
   const headerGroupWithSorted = [...headerGroups];
+
   headerGroupWithSorted.forEach((headerGroup) => {
     headerGroup.headers.forEach((header) => {
-      if (useSortBy) {
-        header.isSorted = sortBy.some((sort) => sort.accessor === header.accessor);
-        header.isSortedDesc = sortBy.some((sort) => sort.accessor === header.accessor && sort.desc);
-        header.getSortByToggleProps = getSortByToggleProps(
-          header.isSorted,
-          header.isSortedDesc,
-          header.accessor,
-          setSortByState
-        );
-      } else {
-        header.isSorted = false;
-        header.isSortedDesc = false;
-        header.getSortByToggleProps = () => {};
-      }
+      header.isSorted = false;
+      header.isSortedDesc = false;
+      header.getSortByToggleProps = () => {};
     });
   });
+  if (useSortBy) {
+    headerGroupWithSorted[headerGroupWithSorted.length - 1].headers.forEach((header) => {
+      header.isSorted = sortBy.some((sort) => sort.accessor === header.accessor);
+      header.isSortedDesc = sortBy.some((sort) => sort.accessor === header.accessor && sort.desc);
+      header.getSortByToggleProps = getSortByToggleProps(
+        header.isSorted,
+        header.isSortedDesc,
+        header.accessor,
+        setSortByState
+      );
+    });
+  }
   return headerGroupWithSorted;
 };
 
@@ -213,7 +247,7 @@ export default function useTable({
   const [sortByState, setSortByState] = useState(sortBy);
 
   const dataSorted = useMemo(
-    () => getDataSorted(data, sortByState, useSortBy, columns),
+    () => getDataSorted(data, sortByState, useSortBy, headerGroups),
     [data, sortByState, useSortBy, columns]
   );
 

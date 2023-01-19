@@ -121,61 +121,58 @@ const PaginationTemplate = ({ columns }) => {
   );
 };
 
-export const Default = Template.bind({});
-Default.args = {
-  columns: [
-    {
-      Header: "TV Show",
-      columns: [
-        {
-          Header: "Name",
-          accessor: "show.name",
-        },
-        {
-          Header: "Type",
-          accessor: "show.type",
-        },
-      ],
-    },
-    {
-      Header: "Plop",
-      columns: [
-        {
-          Header: "Details",
-          columns: [
-            {
-              Header: "Cat1",
-              columns: [
-                {
-                  Header: "Language",
-                  accessor: "show.language",
-                },
-                {
-                  Header: "Genre(s)",
-                  accessor: "show.genres",
-                },
-              ],
-            },
-            {
-              Header: "Cat2",
-              columns: [
-                {
-                  Header: "Runtime",
-                  accessor: "show.runtime",
-                },
-                {
-                  Header: "Status",
-                  accessor: "show.status",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
-
+const MultipleLayersHeadersColums = [
+  {
+    Header: "TV Show",
+    columns: [
+      {
+        Header: "Name",
+        accessor: "show.name",
+      },
+      {
+        Header: "Type",
+        accessor: "show.type",
+      },
+    ],
+  },
+  {
+    Header: "Title",
+    columns: [
+      {
+        Header: "Details",
+        columns: [
+          {
+            Header: "Cat1",
+            columns: [
+              {
+                Header: "Language",
+                accessor: "show.language",
+              },
+              {
+                Header: "Genre(s)",
+                accessor: "show.genres",
+                sortFn: (a, b) => a.length - b.length,
+              },
+            ],
+          },
+          {
+            Header: "Cat2",
+            columns: [
+              {
+                Header: "Runtime",
+                accessor: "show.runtime",
+              },
+              {
+                Header: "Status",
+                accessor: "show.status",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
 const OneLayerHeadersColumns = [
   {
     Header: "Name",
@@ -204,9 +201,9 @@ const OneLayerHeadersColumns = [
   },
 ];
 
-export const OneLayerHeader = Template.bind({});
-OneLayerHeader.args = {
-  columns: OneLayerHeadersColumns,
+export const Default = Template.bind({});
+Default.args = {
+  columns: MultipleLayersHeadersColums,
 };
 
 export const Pagination = PaginationTemplate.bind({});
@@ -216,7 +213,7 @@ Pagination.args = {
 
 export const Sorted = Template.bind({});
 Sorted.args = {
-  columns: OneLayerHeadersColumns,
+  columns: MultipleLayersHeadersColums,
   useSortBy: true,
   sortBy: [{ accessor: "show.genres", desc: false }],
 };

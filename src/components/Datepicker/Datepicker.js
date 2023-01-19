@@ -8,6 +8,11 @@ import ChevronRight from "../../assets/ChevronRight.svg";
 
 import styles from "./Datepicker.css";
 
+/**
+ * @param {number} start
+ * @param {number} end
+ * @returns {number[]} A array of numbers ranging from start to end
+ */
 const range = (start, end) => {
   const array = [];
   for (let i = start; i <= end; i++) {
@@ -20,6 +25,12 @@ const getNumberOfDaysInMonth = (month, year) => {
   return new Date(year, month + 1, 0).getDate();
 };
 
+/**
+ *
+ * @param {number} month
+ * @param {number} year
+ * @returns {{number: number, isCurrentMonth: boolean, month: number, year: number,}[]} An array of days infos needed to generate the desired tab
+ */
 const generateDaysTab = (month, year) => {
   let days = [];
   const numberOfDaysInMonth = getNumberOfDaysInMonth(month, year);
@@ -30,6 +41,7 @@ const generateDaysTab = (month, year) => {
   const numberOfDaysInMonthBefore = getNumberOfDaysInMonth(month - 1, year);
   for (let i = 0 - numberOfDaysToAddBefore; i < numberOfDaysInMonth + numberOfDaysToAddAfter; i++) {
     if (i < 0) {
+      // Previous month days
       days.push({
         number: numberOfDaysInMonthBefore + i + 1,
         isCurrentMonth: false,
@@ -37,6 +49,7 @@ const generateDaysTab = (month, year) => {
         year: month - 1 >= 0 ? year : year - 1,
       });
     } else if (i >= numberOfDaysInMonth) {
+      // Next month days
       days.push({
         number: i - numberOfDaysInMonth + 1,
         isCurrentMonth: false,
@@ -44,6 +57,7 @@ const generateDaysTab = (month, year) => {
         year: month + 1 <= 12 ? year : year + 1,
       });
     } else {
+      // Current month days
       days.push({ number: i + 1, isCurrentMonth: true, month: month, year: year });
     }
   }
@@ -91,7 +105,6 @@ export default function Datepicker({
     date: selected.getDate(),
     month: selected.getMonth(),
     year: selected.getFullYear(),
-    totalDays: getNumberOfDaysInMonth(selected.getMonth(), selected.getFullYear()),
   });
   const [viewDate, setViewDate] = useState({
     month: selectedDate.month,
@@ -117,6 +130,7 @@ export default function Datepicker({
         year: viewDate.month + 1 > 11 ? viewDate.year + 1 : viewDate.year,
       };
       const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+      // Prevent hover index being out of range
       if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
       setDaysTab(daysTab);
       return newViewDate;
@@ -130,6 +144,7 @@ export default function Datepicker({
         year: viewDate.month - 1 < 0 ? viewDate.year - 1 : viewDate.year,
       };
       const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
+      // Prevent hover index being out of range
       if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
       setDaysTab(daysTab);
       return newViewDate;
@@ -137,7 +152,7 @@ export default function Datepicker({
   };
 
   const selectDay = (day) => {
-    /* setTimeout necessary when using useClickOudide on parent component
+    /* setTimeout necessary when using useClickOutside on parent component.
       useOutsideClick can only look for child nodes inside the dom
       so we delay the deletion at the end of the call stack (0ms timeout)
     */
@@ -155,12 +170,12 @@ export default function Datepicker({
     return day.number === selectedDate.date && day.month === selectedDate.month && day.year === selectedDate.year;
   };
 
-  const addZero = (number) => {
-    return number < 10 ? `0${number}` : number;
-  };
-
   const displayDate = () => {
-    return `${addZero(selectedDate.date)}/${addZero(selectedDate.month + 1)}/${selectedDate.year}`;
+    return new Date(selectedDate.year, selectedDate.month, selectedDate.date).toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const handleKeyDownHeader = (event) => {
@@ -259,7 +274,6 @@ export default function Datepicker({
                 setViewDate((viewDate) => {
                   const newViewDate = { ...viewDate, month: value };
                   const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
-                  // setHoverDayTabIndex(daysTab.length - 1 - ((7 - ((hoverDayTabIndex + 1) % 7)) % 7));
                   if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
                   setDaysTab(daysTab);
                   return newViewDate;
@@ -274,7 +288,6 @@ export default function Datepicker({
                 setViewDate((viewDate) => {
                   const newViewDate = { ...viewDate, year: value };
                   const daysTab = generateDaysTab(newViewDate.month, newViewDate.year);
-                  // setHoverDayTabIndex(daysTab.length - 1 - ((7 - ((hoverDayTabIndex + 1) % 7)) % 7));
                   if (hoverDayTabIndex > daysTab.length - 1) setHoverDayTabIndex(hoverDayTabIndex - 7);
                   setDaysTab(daysTab);
                   return newViewDate;
@@ -283,7 +296,6 @@ export default function Datepicker({
               /** Width = (4 number + 1 chevron)ch + padding right + padding left */
               styles={{ ...stylesSelect, input: { ...stylesSelect.input, width: "calc(5ch + 0.5em  + 1.7em)" } }}
             />
-            {/* <span>{`${monthLabels[viewDate.month]} ${viewDate.year}`}</span> */}
             <div
               className={`${styles.chevron} ${
                 (datepickerProps?.className && `${datepickerProps?.className}__chevron`) || ""
