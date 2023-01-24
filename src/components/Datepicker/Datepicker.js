@@ -171,7 +171,7 @@ export default function Datepicker({
   };
 
   const displayDate = () => {
-    return new Date(selectedDate.year, selectedDate.month, selectedDate.date).toLocaleDateString(undefined, {
+    return new Date(selectedDate.year, selectedDate.month, selectedDate.date).toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
